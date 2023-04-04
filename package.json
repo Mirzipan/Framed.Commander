@@ -1,0 +1,25 @@
+{
+  "name": "net.mirzipan.framed.definitions",
+  "displayName": "Framed Commander",
+  "version": "1.0.0",
+  "unity": "2021.3",
+  "description": "Commands module for Framed",
+  "author": {
+	 "name": "Mirzipan"
+  },
+  "keywords": [ 
+	 "package",
+	 "unity",
+     "mirzipan",
+	 "utils",
+     "framework",
+     "frame",
+     "commands",
+     "command"
+  ],
+  "dependencies": {
+    "net.mirzipan.bibliotheca" : "1.3.1",
+    "net.mirzipan.framed" : "1.0.1-alpha.3",
+    "net.mirzipan.infusion" : "2.0.0-alpha.1"
+  }
+}
