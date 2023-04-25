@@ -1,10 +1,10 @@
 {
-    "name": "Framed.Commander",
+    "name": "Mirzipan.Heist",
     "rootNamespace": "",
     "references": [
-        "Mirzipan.Framed",
         "Mirzipan.Bibliotheca",
-        "Mirzipan.Infusion"
+        "Mirzipan.Extensions",
+        "Reflex"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
