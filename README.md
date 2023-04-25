@@ -2,7 +2,7 @@
 
 # Mirzipan.Heist
 
-Slightly enriched command pattern, continuing the tradition of using words associated with murder mystery names in the package names.
+Slightly enriched command pattern, continuing the tradition of using words associated with murder mystery in the package names.
 
 ## Dependencies
 
@@ -62,9 +62,9 @@ The rest of the value range (`1 - 4,294,967,295`) can be used for your custom er
 
 The abstract class comes with a handful of convenience methods, so that you do not need to worry about flow, just about your game logic.
 ```csharp
-static ValidationResult Pass()
-static ValidationResult Fail(uint reason)
-void Enqueue(IProcessable processable)
+static ValidationResult Pass();
+static ValidationResult Fail(uint reason);
+void Enqueue(IProcessable processable);
 ```
 * `Pass` - returns a `ValidationResult` with code `0`.
 * `Fail` - returns a `ValidationResult` with whatever error code you find appropriate.
