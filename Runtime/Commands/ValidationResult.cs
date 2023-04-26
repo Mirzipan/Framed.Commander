@@ -21,6 +21,20 @@ namespace Mirzipan.Heist.Commands
         {
             return x.Code == y.Code;
         }
+        public bool Equals(ValidationResult other)
+        {
+            return Code == other.Code;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is ValidationResult other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return (int)Code;
+        }
 
         public int GetHashCode(ValidationResult obj)
         {
