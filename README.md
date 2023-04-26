@@ -14,7 +14,7 @@ Similar to regular command pattern, but uses actions to trigger the commands.
 1) Create action and send it to your processor
 2) Processor validates your action
 3) Processor creates command(s) based on action (usually atomic operations) and potentially more actions as well
-4) Processor processes the command(s)
+4) Processor executes the command(s)
 
 ***!Important: Everything in the flow besides processor is stateless!***
 
