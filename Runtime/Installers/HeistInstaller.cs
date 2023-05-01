@@ -1,21 +1,24 @@
 ﻿using Mirzipan.Heist.Meta;
+using Mirzipan.Heist.Networking;
 using Mirzipan.Heist.Processors;
 using Reflex.Core;
 using UnityEngine;
 
 namespace Mirzipan.Heist.Installers
 {
-    public class LocalProcessorInstaller : MonoBehaviour, IInstaller
+    public sealed class HeistInstaller : MonoBehaviour, IInstaller
     {
         public void InstallBindings(ContainerDescriptor descriptor)
         {
-            InstallMetadata(descriptor);
+            InstallIndexers(descriptor);
 
             descriptor.AddSingleton(typeof(Resolver), typeof(IResolver));
-            descriptor.AddSingleton(typeof(LocalProcessor), typeof(IProcessor));
+            descriptor.AddSingleton(typeof(NullNetwork), typeof(INetwork));
+            descriptor.AddSingleton(typeof(ClientProcessor), typeof(IClientProcessor));
+            descriptor.AddSingleton(typeof(ServerProcessor), typeof(IServerProcessor));
         }
 
-        private void InstallMetadata(ContainerDescriptor descriptor)
+        private void InstallIndexers(ContainerDescriptor descriptor)
         {
             descriptor.AddInstance(new ActionIndexer(), typeof(IActionIndexer), typeof(IMetadataIndexer));
             descriptor.AddInstance(new CommandIndexer(), typeof(ICommandIndexer), typeof(IMetadataIndexer));

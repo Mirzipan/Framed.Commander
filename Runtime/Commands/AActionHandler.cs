@@ -9,7 +9,7 @@ namespace Mirzipan.Heist.Commands
         private readonly List<IProcessable> _data = new();
 
         [Inject]
-        internal IProcessor Processor;
+        internal IServerProcessor Processor;
 
         #region Validation
 

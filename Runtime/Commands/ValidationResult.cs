@@ -41,6 +41,10 @@ namespace Mirzipan.Heist.Commands
             return (int)obj.Code;
         }
 
+        #endregion Equality
+
+        #region Operators
+
         public static bool operator ==(ValidationResult lhs, ValidationResult rhs)
         {
             return lhs.Code == rhs.Code;
@@ -50,7 +54,7 @@ namespace Mirzipan.Heist.Commands
         {
             return lhs.Code != rhs.Code;
         }
-        
-        #endregion Equality
+
+        #endregion Operators
     }
 }

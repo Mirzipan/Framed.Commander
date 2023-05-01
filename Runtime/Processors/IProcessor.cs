@@ -6,7 +6,5 @@ namespace Mirzipan.Heist.Processors
     {
         ValidationResult Validate(IAction action);
         void Process(IAction action);
-        void Tick();
-        void Execute(ICommand command);
     }
 }

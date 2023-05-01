@@ -5,7 +5,7 @@ using Reflex.Core;
 
 namespace Mirzipan.Heist.Processors
 {
-    internal class Resolver : IResolver, IDisposable
+    internal sealed class Resolver : IResolver, IDisposable
     {
         private Container _container;
         private IActionIndexer _actionIndexer;

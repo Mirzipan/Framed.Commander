@@ -1,39 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
 using Mirzipan.Heist.Commands;
+using Mirzipan.Heist.Networking;
 using UnityEngine;
 
 namespace Mirzipan.Heist.Processors
 {
-    public class LocalProcessor : IProcessor, IDisposable
+    public class ServerProcessor : IServerProcessor, IDisposable
     {
         private Queue<IAction> _queue = new();
-
+        
+        private INetwork _network;
         private IResolver _resolver;
 
         #region Lifecycle
 
-        public LocalProcessor(IResolver container)
+        public ServerProcessor(INetwork network, IResolver resolver)
         {
-            _resolver = container;
-        }
+            _network = network;
+            _resolver = resolver;
 
-        public void Tick()
-        {
-            while (_queue.Count > 0)
-            {
-                var input = _queue.Dequeue();
-
-                var handler = _resolver.ResolveHandler(input);
-                handler.Process(input);
-            }
+            _network.OnReceived += OnReceived;
         }
 
         public void Dispose()
         {
+            _network.OnReceived -= OnReceived;
+            _network = null;
             _resolver = null;
-            _queue.Clear();
-            _queue = null;
         }
 
         #endregion Lifecycle
@@ -44,7 +38,7 @@ namespace Mirzipan.Heist.Processors
         {
             if (action == null)
             {
-                throw new ArgumentNullException("action");
+                throw new ArgumentNullException(nameof(action));
             }
 
             var handler = _resolver.ResolveHandler(action);
@@ -71,5 +65,19 @@ namespace Mirzipan.Heist.Processors
         }
 
         #endregion Public
+
+        #region Bindings
+
+        private void OnReceived(IProcessable processable)
+        {
+            if (processable is not IAction action)
+            {
+                return;
+            }
+
+            Process(action);
+        }
+
+        #endregion Bindings
     }
 }

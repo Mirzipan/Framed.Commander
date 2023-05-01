@@ -5,7 +5,7 @@ using Mirzipan.Heist.Commands;
 
 namespace Mirzipan.Heist.Meta
 {
-    public class CommandIndexer : ICommandIndexer, IDisposable
+    public sealed class CommandIndexer : ICommandIndexer, IDisposable
     {
         private static readonly Type ContainerType = typeof(ICommandContainer);
         private static readonly Type DataType = typeof(ICommand);

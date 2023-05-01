@@ -5,7 +5,7 @@ using Reflex.Core;
 
 namespace Mirzipan.Heist.Meta
 {
-    public class MetadataContainer : IMetadataContainer, IDisposable
+    public sealed class MetadataContainer : IMetadataContainer, IDisposable
     {
         private Container _container;
         
