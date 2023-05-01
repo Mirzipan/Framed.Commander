@@ -20,6 +20,7 @@ namespace Mirzipan.Heist.Processors
             
             _actionIndexer = parent.Resolve<IActionIndexer>();
             _commandIndexer = parent.Resolve<ICommandIndexer>();
+            
             _container = parent.Scope("commands", InstallBindings);
         }
 

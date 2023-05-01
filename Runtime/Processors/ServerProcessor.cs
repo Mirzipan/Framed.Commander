@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Mirzipan.Heist.Commands;
 using Mirzipan.Heist.Networking;
 using UnityEngine;
@@ -8,8 +7,6 @@ namespace Mirzipan.Heist.Processors
 {
     public sealed class ServerProcessor : IServerProcessor, IDisposable
     {
-        private Queue<IAction> _queue = new();
-        
         private INetwork _network;
         private IResolver _resolver;
 
@@ -19,7 +16,7 @@ namespace Mirzipan.Heist.Processors
         {
             _network = network;
             _resolver = resolver;
-
+            
             _network.OnReceived += OnReceived;
         }
 
@@ -54,8 +51,9 @@ namespace Mirzipan.Heist.Processors
                 Debug.LogError($"Validation of {action} failed. code={result.Code}");
                 return;
             }
-
-            _queue.Enqueue(action);
+            
+            var handler = _resolver.ResolveHandler(action);
+            handler.Process(action);
         }
 
         public void Execute(ICommand command)
