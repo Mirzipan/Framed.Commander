@@ -2,7 +2,7 @@
 
 namespace Mirzipan.Heist.Networking
 {
-    public class NullNetwork : INetwork
+    public sealed class NullNetwork : INetwork
     {
         public event ProcessableReceived OnReceived;
         

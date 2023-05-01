@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Mirzipan.Heist.Processors
 {
-    public class ServerProcessor : IServerProcessor, IDisposable
+    public sealed class ServerProcessor : IServerProcessor, IDisposable
     {
         private Queue<IAction> _queue = new();
         
