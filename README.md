@@ -10,11 +10,16 @@ The most notable dependency is [Reflex](https://github.com/gustavopsantos/Reflex
 
 ## The Flow
 Similar to regular command pattern, but uses actions to trigger the commands.
+There are two processors, client and server.
 
-1) Create action and send it to your processor
-2) Processor validates your action
-3) Processor creates command(s) based on action (usually atomic operations) and potentially more actions as well
-4) Processor executes the command(s)
+1) Create action and send it to your client
+2) Client validates your action
+3) Client sends the action to network
+4) Server receives the action
+5) Server creates command(s) based on action (usually atomic operations) and potentially more actions as well
+6) Server sends the command(s) to network
+7) Client receives the command(s)
+8) Client executes the command(s)
 
 ***!Important: Everything in the flow besides processor is stateless!***
 
@@ -100,31 +105,57 @@ If you want to use some kind of event bus to let the rest of your game know what
 
 ## Processing
 
-### IProcessor
+### Processors
+There is client and server processor.
+Basically, there is no reason for you to use the server side, it is really only necessary for action handlers.
+
+#### Client
 ```csharp
-public interface IProcessor
+public interface IClientProcessor
 {
     ValidationResult Validate(IAction action);
     void Process(IAction action);
     void Tick();
-    void Execute(ICommand command);
 }
 ```
 * `Validate` - this exists for when you want to do some external validation, such as in the UI, in order to disabled a button or some other element.
 * `Process` - call this to have your action added to the execution queue (the default processor will also perform validation here).
 * `Tick` - needs to be called manually in order for a processor to do its processing.
+
+#### Server
+```csharp
+public interface IServerProcessor
+{
+    ValidationResult Validate(IAction action);
+    void Process(IAction action);
+    void Execute(ICommand command);
+}
+```
+* `Validate` - same as `IClientProcessor`.
+* `Process` - same as `IClientProcessor`.
 * `Execute` - this should only ever be called internally or for debug purposes.
 
-### Local Processor
-Currently the only processor. 
-If you wish to use it, just add `LocalProcessorInstaller` to your `ProjectContext`.
+### Network
+Currently there is only `NullNetwork`, that just passes its input along. This means that any client-server architecture will only work locally.
+You may, however, implement your own version of `INetwork`, should you so desire.
+```csharp
+public interface INetwork
+{
+    event ProcessableReceived OnReceived;
+    void Send(IProcessable processable);
+}
+```
+* `OnReceived` - invoked when an `IProcessable` was received.
+* `Send` - invoked to send an `IProcessable`.
+
+### Installer
+If you wish to use the default one, just add `HeistInstaller` to your `ProjectScope`.
+It comes with basic versions of client, server and null network.
 
 # Examples
-
 There are a couple of examples in [Sandbox.Heist](https://github.com/Mirzipan/Sandbox.Heist). It is not available as a package, but feel free to clone it into your project and play around.
 
 # Future Plans
-
 The following are likely further extensions of the package, in no particular order or priority
 
 ## Reactive Systems / Event Bus
@@ -143,10 +174,11 @@ This would include some extra information, such as how many times an action was 
 
 ## Multiplayer Support
 This is likely the lowest priority, because no project for which this package is primary intended, needs multiplayer at this stage.
+It already has some preparation for it, such as separate processors.
 The current architecture is already reasonably friendly for a client-server extension, though it would only work for single-player, as there is no way of identifying multiple clients or messaging between them.
 It also lacks any form of "local simulation, until server tells us otherwise" when processing actions.
 
 ## Processor Ticking
-Currently `IProcessor` needs to be ticked in a rather manual way.
+Currently `IClientProcessor` needs to be ticked in a rather manual way.
 Maybe an `ITickable` interface could be used by all things tickable, a central manager would do the ticking.
 Something like this would likely end up in [Mirzipan.Scheduler](https://github.com/Mirzipan/Mirzipan.Scheduler), thus adding another dependency.
