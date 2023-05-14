@@ -1,47 +1,52 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Reflex.Core;
+using System.Reflection;
 
 namespace Mirzipan.Heist.Meta
 {
     public sealed class MetadataContainer : IMetadataContainer, IDisposable
     {
-        private Container _container;
-        
+        private readonly HashSet<Assembly> _knownAssemblies = new();
+
+        public IReadOnlyCollection<Assembly> KnownAssemblies => _knownAssemblies;
+
         #region Lifecycle
 
-        public MetadataContainer(Container container)
+        public void Add(IEnumerable<Assembly> assemblies)
         {
-            _container = container;
+            foreach (Assembly entry in assemblies)
+            {
+                Add(entry);
+            }
         }
 
-        public void Process()
+        public void Add(params Assembly[] assemblies)
         {
-            var indexers = _container.All<IMetadataIndexer>().ToList();
-            
-            foreach (Type entry in GetAllTypes())
+            Add((IEnumerable<Assembly>)assemblies);
+        }
+
+        public void Add(Assembly assembly)
+        {
+            if (_knownAssemblies.Contains(assembly))
             {
-                foreach (var indexer in indexers)
-                {
-                    indexer.Index(entry);
-                }
+                return;
             }
+
+            _knownAssemblies.Add(assembly);
         }
 
         public void Dispose()
         {
-            _container = null;
+            _knownAssemblies.Clear();
         }
 
         #endregion Lifecycle
-        
-        #region Private
 
-        private IEnumerable<Type> GetAllTypes()
+        #region Queries
+
+        public IEnumerable<Type> GetAllTypes()
         {
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            foreach (var assembly in assemblies)
+            foreach (var assembly in _knownAssemblies)
             {
                 foreach (var type in assembly.GetTypes())
                 {
@@ -50,6 +55,6 @@ namespace Mirzipan.Heist.Meta
             }
         }
 
-        #endregion Private
+        #endregion Queries
     }
 }

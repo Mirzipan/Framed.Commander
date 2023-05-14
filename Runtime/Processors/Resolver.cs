@@ -1,50 +1,31 @@
 ﻿using System;
 using Mirzipan.Heist.Commands;
 using Mirzipan.Heist.Meta;
+using Reflex.Attributes;
 using Reflex.Core;
 
 namespace Mirzipan.Heist.Processors
 {
-    internal sealed class Resolver : IResolver, IDisposable
+    public sealed class Resolver : IResolver, IDisposable
     {
+        [Inject]
         private Container _container;
+        [Inject]
         private IActionIndexer _actionIndexer;
+        [Inject]
         private ICommandIndexer _commandIndexer;
 
         #region Lifecycle
 
-        public Resolver(Container parent)
-        {
-            var container = parent.Resolve<IMetadataContainer>();
-            container.Process();
-            
-            _actionIndexer = parent.Resolve<IActionIndexer>();
-            _commandIndexer = parent.Resolve<ICommandIndexer>();
-            
-            _container = parent.Scope("commands", InstallBindings);
-        }
-
         public void Dispose()
         {
-            _container = null;
             _actionIndexer = null;
             _commandIndexer = null;
         }
 
         #endregion Lifecycle
 
-        private void InstallBindings(ContainerDescriptor descriptor)
-        {
-            foreach (var entry in _actionIndexer.GetHandlers())
-            {
-                descriptor.AddSingleton(entry);
-            }
-            
-            foreach (var entry in _commandIndexer.GetReceivers())
-            {
-                descriptor.AddSingleton(entry);
-            }
-        }
+        #region Queries
 
         public IActionHandler ResolveHandler(IAction action)
         {
@@ -57,5 +38,7 @@ namespace Mirzipan.Heist.Processors
             var type = _commandIndexer.GetReceiver(command.GetType());
             return _container.Resolve(type) as ICommandReceiver;
         }
+
+        #endregion Queries
     }
 }

@@ -12,7 +12,7 @@ namespace Mirzipan.Heist.Meta
         private static readonly Type ProcessorType = typeof(IActionHandler);
         
         private readonly Dictionary<Type, Type> _actionToHandler = new();
-
+        
         public void Index(Type type)
         {
             if (!type.IsClass)

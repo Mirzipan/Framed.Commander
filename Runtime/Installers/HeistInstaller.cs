@@ -1,29 +1,81 @@
-﻿using Mirzipan.Heist.Meta;
+﻿using System;
+using Mirzipan.Heist.Meta;
 using Mirzipan.Heist.Networking;
 using Mirzipan.Heist.Processors;
 using Reflex.Core;
-using UnityEngine;
 
 namespace Mirzipan.Heist.Installers
 {
-    public sealed class HeistInstaller : MonoBehaviour, IInstaller
+    public static class HeistInstaller
     {
-        public void InstallBindings(ContainerDescriptor descriptor)
+        /// <summary>
+        /// Adds IMetadataContainer, IResolver, IActionIndexer, ICommandIndexer, and all actions and commands.
+        /// </summary>
+        /// <param name="descriptor"></param>
+        public static void InstallCommon(ContainerDescriptor descriptor)
         {
-            InstallIndexers(descriptor);
-
+            var metaContainer = new MetadataContainer();
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            metaContainer.Add(assemblies);
+            
+            descriptor.AddInstance(metaContainer, typeof(IMetadataContainer));
             descriptor.AddSingleton(typeof(Resolver), typeof(IResolver));
-            descriptor.AddSingleton(typeof(NullNetwork), typeof(INetwork));
-            descriptor.AddSingleton(typeof(ClientProcessor), typeof(IClientProcessor));
-            descriptor.AddSingleton(typeof(ServerProcessor), typeof(IServerProcessor));
+
+            InstallIndexers(descriptor, metaContainer);
         }
 
-        private void InstallIndexers(ContainerDescriptor descriptor)
+        private static void InstallIndexers(ContainerDescriptor descriptor, IMetadataContainer container)
         {
-            descriptor.AddInstance(new ActionIndexer(), typeof(IActionIndexer), typeof(IMetadataIndexer));
-            descriptor.AddInstance(new CommandIndexer(), typeof(ICommandIndexer), typeof(IMetadataIndexer));
+            var actionIndexer = new ActionIndexer();
+            var commandIndexer = new CommandIndexer();
 
-            descriptor.AddSingleton(typeof(MetadataContainer), typeof(IMetadataContainer));
+            foreach (var entry in container.GetAllTypes())
+            {
+                actionIndexer.Index(entry);
+                commandIndexer.Index(entry);
+            }
+            
+            descriptor.AddInstance(actionIndexer, typeof(IActionIndexer));
+            foreach (var entry in actionIndexer.GetHandlers())
+            {
+                descriptor.AddSingleton(entry);
+            }
+            
+            descriptor.AddInstance(commandIndexer, typeof(ICommandIndexer));
+            foreach (var entry in commandIndexer.GetReceivers())
+            {
+                descriptor.AddSingleton(entry);
+            }
+        }
+
+        /// <summary>
+        /// Adds an implementation of <see cref="INetwork"/> suitable for local single-player.
+        /// Do not call this if you want another type of network.
+        /// </summary>
+        /// <param name="descriptor"></param>
+        public static void InstallNullNetwork(ContainerDescriptor descriptor)
+        {
+            descriptor.AddSingleton(typeof(NullNetwork), typeof(INetwork));
+        }
+
+        /// <summary>
+        /// Adds default implementation of <see cref="IClientProcessor"/>.
+        /// Do not call this if you want your custom client processor.
+        /// </summary>
+        /// <param name="descriptor"></param>
+        public static void InstallClient(ContainerDescriptor descriptor)
+        {
+            descriptor.AddSingleton(typeof(ClientProcessor), typeof(IClientProcessor));
+        }
+
+        /// <summary>
+        /// Adds default implementation of <see cref="IServerProcessor"/>.
+        /// Do not call this if you want your custom server processor.
+        /// </summary>
+        /// <param name="descriptor"></param>
+        public static void InstallServer(ContainerDescriptor descriptor)
+        {
+            descriptor.AddSingleton(typeof(ServerProcessor), typeof(IServerProcessor));
         }
     }
 }

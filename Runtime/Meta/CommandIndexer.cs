@@ -12,7 +12,7 @@ namespace Mirzipan.Heist.Meta
         private static readonly Type ProcessorType = typeof(ICommandReceiver);
         
         private readonly Dictionary<Type, Type> _commandToReceiver = new();
-
+        
         public void Index(Type type)
         {
             if (!type.IsClass)
