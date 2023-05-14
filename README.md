@@ -8,29 +8,36 @@ Slightly enriched command pattern, continuing the tradition of using words assoc
 
 The most notable dependency is [Reflex](https://github.com/gustavopsantos/Reflex), which is a super fast and super convenient library for dependency injection.
 
+## Getting Started
+A short guide to get you up-and-running.
+
+1) Add [Reflex](https://github.com/gustavopsantos/Reflex) to your project and create `ProjectScope` prefab according to their instructions.
+2) Add `SinglePlayerHeistInstaller` script to your `ProjectScope` prefab.
+3) Create your custom actions and commands (see examples in [Sandbox.Heist](https://github.com/Mirzipan/Sandbox.Heist) for a quick reference).
+
+In case you want more than the basics, refer to the documention below to learn how to extend Heist.
+
 ## The Flow
 Similar to regular command pattern, but uses actions to trigger the commands.
-There are two processors, client and server.
+There are two processors, `IClientProcessor` and `IServerProcessor`, which will be refered to as `client` and `server`.
 
-1) Create action and send it to your client
+1) Create action and tell client to process it
 2) Client validates your action
 3) Client sends the action to network
 4) Server receives the action
 5) Server creates command(s) based on action (usually atomic operations) and potentially more actions as well
 6) Server sends the command(s) to network
-7) Client receives the command(s)
-8) Client executes the command(s)
+7) Client receives and executes the command(s)
 
-***!Important: Everything in the flow besides processor is stateless!***
+***!Important: Everything in the flow besides processor should be kept stateless!***
 
-## User Types
-These are the types you will mostly come into contact with when implementing your game logic.
+## Action
 
 ### Action Container
 An empty class that implements `IActionContainer`.
 It needs to include an `IAction` and an `IActionHandler` subtype.
 
-### Action
+### Action Data
 Simple data type that implements `IAction` to hold all information that is necessary for validation and processing.
 Action means anything that could be a player action.
 
@@ -58,7 +65,7 @@ Relevant part of the API:
 ```csharp
 abstract class AActionHandler<T> : IActionHandler where T : IAction
 {
-    ValidationResult Validate(T action);
+    ValidationResult Validate(T action, ValidationOptions options);
     void Process(T action);
 }
 ```
@@ -75,11 +82,13 @@ void Enqueue(IProcessable processable);
 * `Fail` - returns a `ValidationResult` with whatever error code you find appropriate.
 * `Enqueue(action / command)`- adds an action to be processed or command to be executed.
 
+## Command
+
 ### Command Container
 An empty class that implements `ICommandContainer`.
 It needs to include an `ICommand` and an `ICommandReceiver` subtype.
 
-### Command
+### Command Data
 Simple data type that implements `ICommand` to hold all information necessary for command execution.
 These can have any granularity you may see fit, but it ideally, those would be atomic operations.
 
@@ -104,35 +113,42 @@ At this point, no validation checks are necessary, because any issues should hav
 If you want to use some kind of event bus to let the rest of your game know what happened, this is a good place to it.
 
 ## Processing
+There is a client and a server processor.
+Most of the time, you will interface with the client-side of things.
 
-### Processors
-There is client and server processor.
-Basically, there is no reason for you to use the server side, it is really only necessary for action handlers.
-
-#### Client
+### Client
 ```csharp
 public interface IClientProcessor
 {
     ValidationResult Validate(IAction action);
     void Process(IAction action);
     void Tick();
+    event Action<ICommand> OnCommandExecution;
+    event Action<ICommand> OnCommandExecuted;
 }
 ```
 * `Validate` - this exists for when you want to do some external validation, such as in the UI, in order to disabled a button or some other element.
 * `Process` - call this to have your action added to the execution queue (the default processor will also perform validation here).
 * `Tick` - needs to be called manually in order for a processor to do its processing.
+* `OnCommandExecution` - invoked immediatelly before execution of a command.
+* `OnCommandExecuted` - invoked immediatelly after a command finished being executed.
 
-#### Server
+### Server
 ```csharp
 public interface IServerProcessor
 {
     ValidationResult Validate(IAction action);
+    ValidationResult Validate(IAction action, ValidationOptions options);
     void Process(IAction action);
+    void ProcessFromClient(IAction action);
+    void ProcessFromServer(IAction action);
     void Execute(ICommand command);
 }
 ```
-* `Validate` - same as `IClientProcessor`.
-* `Process` - same as `IClientProcessor`.
+* `Validate` - same as `IClientProcessor`, includes an overload which have have further options specified.
+* `Process` - same as calling `ProcessFromServer`.
+* `ProcessFromClient` - validates and processes an action sent by client.
+* `ProcessFromServer` - validates and processes an action sent by server/itself, such as when enqueing an `IAction` from `IActionHandler.Process()`.
 * `Execute` - this should only ever be called internally or for debug purposes.
 
 ### Network
@@ -148,37 +164,30 @@ public interface INetwork
 * `OnReceived` - invoked when an `IProcessable` was received.
 * `Send` - invoked to send an `IProcessable`.
 
-### Installer
-If you wish to use the default one, just add `HeistInstaller` to your `ProjectScope`.
-It comes with basic versions of client, server and null network.
-
-# Examples
-There are a couple of examples in [Sandbox.Heist](https://github.com/Mirzipan/Sandbox.Heist). It is not available as a package, but feel free to clone it into your project and play around.
-
-# Future Plans
+## Future Plans
 The following are likely further extensions of the package, in no particular order or priority
 
-## Reactive Systems / Event Bus
+### Reactive Systems / Event Bus
 Some form of registry for things that may want to respond to actions being processed and/or commands being executed.
 This will mostly likely end up being generic, so that systems can simple declare what type of action/command they are interested in.
 This role could also be served by an event bus, where the command would dispatch the relevant event(s) and subscribers could then execute whatever they see fit.
 
-## Metadata Crawler
+### Metadata Crawler
 Separation of the type-crawling part (`IMetadataIndexer` and `MetadataContainer`) into a separate package, ideally reusable for indexing other types.
 Not a priority until a need for indexers in other packages would arise.
 
-## Debug View
+### Debug View
 A Debugger window where you can see all of the registered actions/commands. 
 This would include some extra information, such as how many times an action was validated and processed, and a command was executed.
 `Reflex` debugger already shows the count of resolutions for each action/command, but that tells use nothing about how the processing/execution went.
 
-## Multiplayer Support
+### Multiplayer Support
 This is likely the lowest priority, because no project for which this package is primary intended, needs multiplayer at this stage.
 It already has some preparation for it, such as separate processors.
 The current architecture is already reasonably friendly for a client-server extension, though it would only work for single-player, as there is no way of identifying multiple clients or messaging between them.
 It also lacks any form of "local simulation, until server tells us otherwise" when processing actions.
 
-## Processor Ticking
+### Processor Ticking
 Currently `IClientProcessor` needs to be ticked in a rather manual way.
 Maybe an `ITickable` interface could be used by all things tickable, a central manager would do the ticking.
 Something like this would likely end up in [Mirzipan.Scheduler](https://github.com/Mirzipan/Mirzipan.Scheduler), thus adding another dependency.
