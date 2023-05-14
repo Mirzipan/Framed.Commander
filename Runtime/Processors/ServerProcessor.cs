@@ -33,18 +33,48 @@ namespace Mirzipan.Heist.Processors
 
         public ValidationResult Validate(IAction action)
         {
+            return Validate(action, ValidationOptions.SenderIsServer);
+        }
+
+        public ValidationResult Validate(IAction action, ValidationOptions options)
+        {
             if (action == null)
             {
                 throw new ArgumentNullException(nameof(action));
             }
 
             var handler = _resolver.ResolveHandler(action);
-            return handler.Validate(action);
+            return handler.Validate(action, options);
         }
 
         public void Process(IAction action)
         {
-            var result = Validate(action);
+            ProcessFromServer(action);
+        }
+
+        public void ProcessFromClient(IAction action)
+        {
+            Process(action, ValidationOptions.None);
+        }
+
+        public void ProcessFromServer(IAction action)
+        {
+            Process(action, ValidationOptions.SenderIsServer);
+        }
+
+        public void Execute(ICommand command)
+        {
+            var receiver = _resolver.ResolveReceiver(command);
+            receiver.Execute(command);
+        }
+
+        #endregion Public
+
+        #region Private
+
+        private void Process(IAction action, ValidationOptions options)
+        {
+            var result = Validate(action, options);
             if (!result.Success)
             {
                 // TODO: do we need to log this?
@@ -56,13 +86,7 @@ namespace Mirzipan.Heist.Processors
             handler.Process(action);
         }
 
-        public void Execute(ICommand command)
-        {
-            var receiver = _resolver.ResolveReceiver(command);
-            receiver.Execute(command);
-        }
-
-        #endregion Public
+        #endregion Private
 
         #region Bindings
 
@@ -73,7 +97,7 @@ namespace Mirzipan.Heist.Processors
                 return;
             }
 
-            Process(action);
+            ProcessFromClient(action);
         }
 
         #endregion Bindings

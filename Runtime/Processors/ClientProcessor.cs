@@ -56,7 +56,7 @@ namespace Mirzipan.Heist.Processors
             }
 
             var handler = _resolver.ResolveHandler(action);
-            return handler.Validate(action);
+            return handler.Validate(action, ValidationOptions.None);
         }
 
         public void Process(IAction action)

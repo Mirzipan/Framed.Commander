@@ -13,12 +13,12 @@ namespace Mirzipan.Heist.Commands
 
         #region Validation
 
-        public ValidationResult Validate(IAction action)
+        public ValidationResult Validate(IAction action, ValidationOptions options)
         {
-            return Validate((T)action);
+            return Validate((T)action, options);
         }
 
-        protected abstract ValidationResult Validate(T action);
+        protected abstract ValidationResult Validate(T action, ValidationOptions options);
 
         protected static ValidationResult Pass() => ValidationResult.Pass;
 
@@ -38,7 +38,7 @@ namespace Mirzipan.Heist.Commands
                 var entry = _data[i];
                 if (entry is IAction entryAction)
                 {
-                    Processor.Process(entryAction);
+                    Processor.ProcessFromServer(entryAction);
                 }
 
                 if (entry is ICommand entryCommand)
