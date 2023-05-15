@@ -1,7 +1,7 @@
 ﻿using System;
-using Mirzipan.Heist.Meta;
 using Mirzipan.Heist.Networking;
 using Mirzipan.Heist.Processors;
+using Mirzipan.Heist.Reflex;
 using Reflex.Core;
 
 namespace Mirzipan.Heist.Installers
@@ -12,40 +12,10 @@ namespace Mirzipan.Heist.Installers
         /// Adds IMetadataContainer, IResolver, IActionIndexer, ICommandIndexer, and all actions and commands.
         /// </summary>
         /// <param name="descriptor"></param>
+        [Obsolete("Use AddMetadataIndexers extension method.")]
         public static void InstallCommon(ContainerDescriptor descriptor)
         {
-            var metaContainer = new MetadataContainer();
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            metaContainer.Add(assemblies);
-            
-            descriptor.AddInstance(metaContainer, typeof(IMetadataContainer));
-            descriptor.AddSingleton(typeof(Resolver), typeof(IResolver));
-
-            InstallIndexers(descriptor, metaContainer);
-        }
-
-        private static void InstallIndexers(ContainerDescriptor descriptor, IMetadataContainer container)
-        {
-            var actionIndexer = new ActionIndexer();
-            var commandIndexer = new CommandIndexer();
-
-            foreach (var entry in container.GetAllTypes())
-            {
-                actionIndexer.Index(entry);
-                commandIndexer.Index(entry);
-            }
-            
-            descriptor.AddInstance(actionIndexer, typeof(IActionIndexer));
-            foreach (var entry in actionIndexer.GetHandlers())
-            {
-                descriptor.AddSingleton(entry);
-            }
-            
-            descriptor.AddInstance(commandIndexer, typeof(ICommandIndexer));
-            foreach (var entry in commandIndexer.GetReceivers())
-            {
-                descriptor.AddSingleton(entry);
-            }
+            descriptor.AddMetadataIndexers();
         }
 
         /// <summary>
@@ -53,9 +23,10 @@ namespace Mirzipan.Heist.Installers
         /// Do not call this if you want another type of network.
         /// </summary>
         /// <param name="descriptor"></param>
+        [Obsolete("Use AddNullNetwork extension method.")]
         public static void InstallNullNetwork(ContainerDescriptor descriptor)
         {
-            descriptor.AddSingleton(typeof(NullNetwork), typeof(INetwork));
+            descriptor.AddNullNetwork();
         }
 
         /// <summary>
@@ -63,9 +34,10 @@ namespace Mirzipan.Heist.Installers
         /// Do not call this if you want your custom client processor.
         /// </summary>
         /// <param name="descriptor"></param>
+        [Obsolete("Use AddClientProcessor extension method.")]
         public static void InstallClient(ContainerDescriptor descriptor)
         {
-            descriptor.AddSingleton(typeof(ClientProcessor), typeof(IClientProcessor));
+            descriptor.AddClientProcessor();
         }
 
         /// <summary>
@@ -73,9 +45,10 @@ namespace Mirzipan.Heist.Installers
         /// Do not call this if you want your custom server processor.
         /// </summary>
         /// <param name="descriptor"></param>
+        [Obsolete("Use AddServerProcessor extension method.")]
         public static void InstallServer(ContainerDescriptor descriptor)
         {
-            descriptor.AddSingleton(typeof(ServerProcessor), typeof(IServerProcessor));
+            descriptor.AddServerProcessor();
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Reflex.Core;
+﻿using Mirzipan.Heist.Reflex;
+using Reflex.Core;
 using UnityEngine;
 
 namespace Mirzipan.Heist.Installers
@@ -7,10 +8,11 @@ namespace Mirzipan.Heist.Installers
     {
         public void InstallBindings(ContainerDescriptor descriptor)
         {
-            HeistInstaller.InstallCommon(descriptor);
-            HeistInstaller.InstallNullNetwork(descriptor);
-            HeistInstaller.InstallClient(descriptor);
-            HeistInstaller.InstallServer(descriptor);
+            descriptor.AddMetadataIndexers();
+            
+            descriptor.AddNullNetwork();
+            descriptor.AddClientProcessor();
+            descriptor.AddServerProcessor();
         }
     }
 }
