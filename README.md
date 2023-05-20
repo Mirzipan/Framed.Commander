@@ -3,6 +3,7 @@
 # Mirzipan.Heist
 
 Slightly enriched command pattern, continuing the tradition of using words associated with murder mystery in the package names.
+It can support multiple clients with a single server.
 
 ## Dependencies
 
@@ -14,8 +15,9 @@ A short guide to get you up-and-running.
 1) Add [Reflex](https://github.com/gustavopsantos/Reflex) to your project and create `ProjectScope` prefab according to their instructions.
 2) Add `SinglePlayerHeistInstaller` script to your `ProjectScope` prefab.
 3) Create your custom actions and commands (see examples in [Sandbox.Heist](https://github.com/Mirzipan/Sandbox.Heist) for a quick reference).
+4) Have a separate copy of your date for client and for server.
 
-In case you want more than the basics, refer to the documention below to learn how to extend Heist.
+In case you want more than the basics, refer to the documentation below to learn how to extend Heist.
 
 ## The Flow
 Similar to regular command pattern, but uses actions to trigger the commands.
@@ -26,16 +28,18 @@ There are two processors, `IClientProcessor` and `IServerProcessor`, which will 
 3) Client sends the action to network
 4) Server receives the action
 5) Server creates command(s) based on action (usually atomic operations) and potentially more actions as well
-6) Server sends the command(s) to network
-7) Client receives and executes the command(s)
+6) Server executes the command(s), if necessary
+7) Server sends the command(s) to network, if necessary
+8) Client receives and executes the command(s)
 
-***!Important: Everything in the flow besides processor should be kept stateless!***
+***!Important: Everything in the flow besides processors and queue should be kept stateless!***
 
 ## Action
 
 ### Action Container
 An empty class that implements `IActionContainer`.
 It needs to include an `IAction` and an `IActionHandler` subtype.
+The container exists to enforce 1:1 pairing of actions and their handlers.
 
 ### Action Data
 Simple data type that implements `IAction` to hold all information that is necessary for validation and processing.
@@ -65,8 +69,8 @@ Relevant part of the API:
 ```csharp
 abstract class AActionHandler<T> : IActionHandler where T : IAction
 {
-    ValidationResult Validate(T action, ValidationOptions options);
-    void Process(T action);
+    ValidationResult Validate(T action, int clientId, ValidationOptions options);
+    void Process(T action, int clientId);
 }
 ```
 `ValidationResult` holds a single `uint`, where `0` means successful validation.
@@ -76,17 +80,23 @@ The abstract class comes with a handful of convenience methods, so that you do n
 ```csharp
 static ValidationResult Pass();
 static ValidationResult Fail(uint reason);
-void Enqueue(IProcessable processable);
+void Enqueue(IAction action);
+void Enqueue(ICommand command, int[] clientIds, ExecuteOn target);
+void Enqueue(ICommand command, int clientId, ExecuteOn target);
+void Enqueue(ICommand command, ExecuteOn target);
+
 ```
 * `Pass` - returns a `ValidationResult` with code `0`.
-* `Fail` - returns a `ValidationResult` with whatever error code you find appropriate.
-* `Enqueue(action / command)`- adds an action to be processed or command to be executed.
+* `Fail` - returns a `ValidationResult` with whatever error code you find appropriate, except `0`.
+* `Enqueue action`- adds an action to be processed on server.
+* `Enqueue command` - adds command to be executed based on options and optionally sent to one or more clients.
 
 ## Command
 
 ### Command Container
 An empty class that implements `ICommandContainer`.
 It needs to include an `ICommand` and an `ICommandReceiver` subtype.
+The container exists to enforce 1:1 pairing of commands and their receivers.
 
 ### Command Data
 Simple data type that implements `ICommand` to hold all information necessary for command execution.
@@ -120,49 +130,79 @@ Most of the time, you will interface with the client-side of things.
 ```csharp
 public interface IClientProcessor
 {
+    event Action<ICommand> OnCommandExecution;
+    event Action<ICommand> OnCommandExecuted;
     ValidationResult Validate(IAction action);
     void Process(IAction action);
     void Tick();
-    event Action<ICommand> OnCommandExecution;
-    event Action<ICommand> OnCommandExecuted;
 }
 ```
+* `OnCommandExecution` - invoked immediately before execution of a command.
+* `OnCommandExecuted` - invoked immediately after a command finished being executed.
 * `Validate` - this exists for when you want to do some external validation, such as in the UI, in order to disabled a button or some other element.
 * `Process` - call this to have your action added to the execution queue (the default processor will also perform validation here).
 * `Tick` - needs to be called manually in order for a processor to do its processing.
-* `OnCommandExecution` - invoked immediatelly before execution of a command.
-* `OnCommandExecuted` - invoked immediatelly after a command finished being executed.
 
 ### Server
 ```csharp
 public interface IServerProcessor
 {
+    event Action<ICommand> OnCommandExecution;
+    event Action<ICommand> OnCommandExecuted;
     ValidationResult Validate(IAction action);
-    ValidationResult Validate(IAction action, ValidationOptions options);
+    ValidationResult Validate(IAction action, int clientId, ValidationOptions options);
     void Process(IAction action);
-    void ProcessFromClient(IAction action);
-    void ProcessFromServer(IAction action);
-    void Execute(ICommand command);
+    void ProcessClientAction(IAction action, int clientId);
+    void ProcessServerAction(IAction action);
+    void Execute(ICommand command, int[] clientIds, ExecuteOn target);
 }
 ```
+* `OnCommandExecution` - same as `IClientProcessor`.
+* `OnCommandExecuted` - same as `IClientProcessor`.
 * `Validate` - same as `IClientProcessor`, includes an overload which have have further options specified.
-* `Process` - same as calling `ProcessFromServer`.
-* `ProcessFromClient` - validates and processes an action sent by client.
-* `ProcessFromServer` - validates and processes an action sent by server/itself, such as when enqueing an `IAction` from `IActionHandler.Process()`.
-* `Execute` - this should only ever be called internally or for debug purposes.
+* `Process` - same as calling `ProcessServerAction`.
+* `ProcessClientAction` - validates and processes an action sent by client.
+* `ProcessServerAction` - validates and processes an action sent by server/itself, such as when enqueing an `IAction` from `IActionHandler.Process()`.
+* `Execute` - executes the command and sends it to clients based on options.
 
-### Network
-Currently there is only `NullNetwork`, that just passes its input along. This means that any client-server architecture will only work locally.
-You may, however, implement your own version of `INetwork`, should you so desire.
+### Queue
+Currently there is only `LoopbackQueue`, that just passes its inputs along.
+This means that any client(s)-server architecture will only work locally.
+You may, however, implement your own version of queues, should you so desire.
+
+#### For Client
 ```csharp
-public interface INetwork
+public interface IOutgoingActions : IDisposable
 {
-    event ProcessableReceived OnReceived;
-    void Send(IProcessable processable);
+    void Send(IAction action);
 }
 ```
-* `OnReceived` - invoked when an `IProcessable` was received.
-* `Send` - invoked to send an `IProcessable`.
+* `Send` - invoked to send an `IAction` to server.
+
+```csharp
+public interface IIncomingCommands : IDisposable
+{
+    event CommandReceived OnCommandReceived;
+}    
+```
+* `OnCommandReceived` - invoked when an `ICommand` was received.
+
+#### For Server
+```csharp
+public interface IIncomingActions
+{
+    event ActionReceived OnActionReceived;
+}
+```
+* `OnActionReceived` - invoked when an `IAction` was received from a `clientId`.
+
+```csharp
+public interface IOutgoingCommands : IDisposable
+{
+    void Send(ICommand command, int[] clientIds, bool sendToAll);
+}
+```
+* `Send` - invoked to send an `ICommand` to one or more clients.
 
 ## Future Plans
 The following are likely further extensions of the package, in no particular order or priority

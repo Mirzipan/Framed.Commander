@@ -1,9 +1,9 @@
 {
   "name": "net.mirzipan.heist",
   "displayName": "Mirzipan Heist",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "unity": "2021.3",
-  "description": "Simple command pattern implementation for Unity",
+  "description": "Simple multi-client command pattern implementation for Unity.",
   "author": {
 	 "name": "Mirzipan"
   },
@@ -13,10 +13,13 @@
      "mirzipan",
 	 "utils",
      "commands",
-     "command"
+     "command",
+     "client",
+     "multiclient",
+     "server"
   ],
   "dependencies": {
-    "com.gustavopsantos.reflex" : "4.1.1",
+    "com.gustavopsantos.reflex" : "4.1.3",
     "net.mirzipan.bibliotheca" : "1.3.2",
     "net.mirzipan.extensions" : "1.4.0"
   }

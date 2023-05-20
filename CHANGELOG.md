@@ -1,5 +1,24 @@
 # Changelog
 
+## [4.0.0] - 2023-05-20
+
+### Added
+- IIncomingActions and IOutgoingActions
+- IIncomingCommands and IOutgoingCommands
+- OnCommandExecution and OnCommandExecuted events in IServerProcessor
+- ContainerDescriptorExtensions for easy adding of necessary components
+- Support for multi-client operation
+- Execution options for commands (client, all clients, server)
+
+### Changed
+- ClientProcessor now requires IOutgoingActions and IIncomingCommands instead of INetwork
+- ServerProcessor now requires IIncomingActions and IOutgoingCommands instead of INetwork
+- IActionHandler now requires clientId in all of its methods
+
+### Removed
+- HeistInstaller (superseded by ContainerDescriptorExtensions)
+- NullNetwork (superseded by LoopbackQueue)
+
 ## [3.0.0] - 2023-05-14
 
 ### Added
