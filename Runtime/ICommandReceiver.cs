@@ -1,4 +1,4 @@
-﻿namespace Mirzipan.Heist.Commands
+﻿namespace Mirzipan.Heist
 {
     public interface ICommandReceiver
     {

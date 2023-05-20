@@ -17,7 +17,7 @@ namespace Mirzipan.Heist.Reflex
             var metaContainer = new MetadataContainer();
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             metaContainer.Add(assemblies);
-            
+
             @this.AddInstance(metaContainer, typeof(IMetadataContainer));
             @this.AddSingleton(typeof(Resolver), typeof(IResolver));
 
@@ -25,13 +25,19 @@ namespace Mirzipan.Heist.Reflex
         }
 
         /// <summary>
-        /// Adds an implementation of <see cref="INetwork"/> suitable for local single-player.
+        /// Adds an implementation of <see cref="IIncomingActions"/>, <see cref="IOutgoingActions"/>, <see cref="IIncomingCommands"/>, <see cref="IOutgoingCommands"/> suitable for local single-player.
         /// Do not call this if you want another type of network.
         /// </summary>
         /// <param name="this"></param>
-        public static void AddNullNetwork(this ContainerDescriptor @this)
+        public static void AddLoopbackQueue(this ContainerDescriptor @this)
         {
-            @this.AddSingleton(typeof(NullNetwork), typeof(INetwork));
+            var queue = new LoopbackQueue();
+            @this.AddInstance(
+                queue, 
+                typeof(IIncomingActions),
+                typeof(IOutgoingActions),
+                typeof(IIncomingCommands),
+                typeof(IOutgoingCommands));
         }
 
         /// <summary>
@@ -64,13 +70,13 @@ namespace Mirzipan.Heist.Reflex
                 actionIndexer.Index(entry);
                 commandIndexer.Index(entry);
             }
-            
+
             descriptor.AddInstance(actionIndexer, typeof(IActionIndexer));
             foreach (var entry in actionIndexer.GetHandlers())
             {
                 descriptor.AddSingleton(entry);
             }
-            
+
             descriptor.AddInstance(commandIndexer, typeof(ICommandIndexer));
             foreach (var entry in commandIndexer.GetReceivers())
             {

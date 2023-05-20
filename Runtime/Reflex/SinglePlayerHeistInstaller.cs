@@ -1,8 +1,7 @@
-﻿using Mirzipan.Heist.Reflex;
-using Reflex.Core;
+﻿using Reflex.Core;
 using UnityEngine;
 
-namespace Mirzipan.Heist.Installers
+namespace Mirzipan.Heist.Reflex
 {
     public class SinglePlayerHeistInstaller : MonoBehaviour, IInstaller
     {
@@ -10,7 +9,7 @@ namespace Mirzipan.Heist.Installers
         {
             descriptor.AddMetadataIndexers();
             
-            descriptor.AddNullNetwork();
+            descriptor.AddLoopbackQueue();
             descriptor.AddClientProcessor();
             descriptor.AddServerProcessor();
         }

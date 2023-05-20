@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Mirzipan.Heist.Commands
+namespace Mirzipan.Heist
 {
     [Flags]
     public enum ValidationOptions

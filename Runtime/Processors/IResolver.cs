@@ -1,6 +1,4 @@
-﻿using Mirzipan.Heist.Commands;
-
-namespace Mirzipan.Heist.Processors
+﻿namespace Mirzipan.Heist.Processors
 {
     public interface IResolver
     {

@@ -1,37 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
 using Mirzipan.Extensions;
-using Mirzipan.Heist.Commands;
 using Mirzipan.Heist.Networking;
-using UnityEngine;
 
 namespace Mirzipan.Heist.Processors
 {
     public sealed class ClientProcessor : IClientProcessor, IDisposable
     {
+        private const string LogTag = nameof(ClientProcessor);
+        
         public event Action<ICommand> OnCommandExecution;
         public event Action<ICommand> OnCommandExecuted;
         
-        private Queue<ICommand> _commandQueue = new();
-        
-        private INetwork _network;
+        private Queue<ICommand> _processingQueue = new();
+
+        private IOutgoingActions _actions;
+        private IIncomingCommands _commands;
         private IResolver _resolver;
 
         #region Lifecycle
 
-        public ClientProcessor(INetwork network, IResolver resolver)
+        public ClientProcessor(IOutgoingActions actions, IIncomingCommands commands, IResolver resolver)
         {
-            _network = network;
+            _actions = actions;
+            _commands= commands;
             _resolver = resolver;
 
-            _network.OnReceived += OnReceived;
+            _commands.OnCommandReceived += OnCommandReceived;
         }
 
         public void Tick()
         {
-            while (_commandQueue.Count > 0)
+            while (_processingQueue.Count > 0)
             {
-                ICommand command = _commandQueue.Dequeue();
+                ICommand command = _processingQueue.Dequeue();
                 ICommandReceiver handler = _resolver.ResolveReceiver(command);
                 
                 OnCommandExecution.SafeInvoke(command);
@@ -44,13 +46,14 @@ namespace Mirzipan.Heist.Processors
         {
             OnCommandExecution = null;
             OnCommandExecuted = null;
-            
-            _network.OnReceived -= OnReceived;
-            _network = null;
+
+            _actions = null;
+            _commands.OnCommandReceived -= OnCommandReceived;
+            _commands = null;
             _resolver = null;
             
-            _commandQueue.Clear();
-            _commandQueue = null;
+            _processingQueue.Clear();
+            _processingQueue = null;
         }
 
         #endregion Lifecycle
@@ -65,7 +68,7 @@ namespace Mirzipan.Heist.Processors
             }
 
             var handler = _resolver.ResolveHandler(action);
-            return handler.Validate(action, ValidationOptions.None);
+            return handler.Validate(action, 0, ValidationOptions.None);
         }
 
         public void Process(IAction action)
@@ -73,25 +76,20 @@ namespace Mirzipan.Heist.Processors
             var result = Validate(action);
             if (!result.Success)
             {
-                Debug.LogError($"Validation of {action} failed. code={result.Code}");
+                HeistLogger.Error(LogTag, $"Validation of {action} failed. code={result.Code}");
                 return;
             }
 
-            _network?.Send(action);
+            _actions?.Send(action);
         }
 
         #endregion Public
 
         #region Bindings
 
-        private void OnReceived(IProcessable processable)
+        private void OnCommandReceived(ICommand command)
         {
-            if (processable is not ICommand command)
-            {
-                return;
-            }
-            
-            _commandQueue.Enqueue(command);
+            _processingQueue.Enqueue(command);
         }
 
         #endregion Bindings

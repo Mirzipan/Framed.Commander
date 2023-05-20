@@ -1,29 +1,39 @@
 ﻿using System;
-using Mirzipan.Heist.Commands;
+using Mirzipan.Extensions;
 using Mirzipan.Heist.Networking;
-using UnityEngine;
 
 namespace Mirzipan.Heist.Processors
 {
     public sealed class ServerProcessor : IServerProcessor, IDisposable
     {
-        private INetwork _network;
+        private const string LogTag = nameof(ServerProcessor);
+        
+        public event Action<ICommand> OnCommandExecution;
+        public event Action<ICommand> OnCommandExecuted;
+        
+        private IOutgoingCommands _commands;
+        private IIncomingActions _actions;
         private IResolver _resolver;
 
         #region Lifecycle
 
-        public ServerProcessor(INetwork network, IResolver resolver)
+        public ServerProcessor(IIncomingActions actions, IOutgoingCommands commands, IResolver resolver)
         {
-            _network = network;
+            _actions = actions;
+            _commands = commands;
             _resolver = resolver;
             
-            _network.OnReceived += OnReceived;
+            _actions.OnActionReceived += OnActionReceived;
         }
 
         public void Dispose()
         {
-            _network.OnReceived -= OnReceived;
-            _network = null;
+            OnCommandExecution = null;
+            OnCommandExecuted = null;
+
+            _actions.OnActionReceived -= OnActionReceived;
+            _actions = null;
+            _commands = null;
             _resolver = null;
         }
 
@@ -33,10 +43,10 @@ namespace Mirzipan.Heist.Processors
 
         public ValidationResult Validate(IAction action)
         {
-            return Validate(action, ValidationOptions.SenderIsServer);
+            return Validate(action, ClientId.Server, ValidationOptions.SenderIsServer);
         }
 
-        public ValidationResult Validate(IAction action, ValidationOptions options)
+        public ValidationResult Validate(IAction action, int clientId, ValidationOptions options)
         {
             if (action == null)
             {
@@ -44,60 +54,79 @@ namespace Mirzipan.Heist.Processors
             }
 
             var handler = _resolver.ResolveHandler(action);
-            return handler.Validate(action, options);
+            return handler.Validate(action, clientId, options);
         }
 
         public void Process(IAction action)
         {
-            ProcessFromServer(action);
+            ProcessServerAction(action);
         }
 
-        public void ProcessFromClient(IAction action)
+        public void ProcessClientAction(IAction action, int clientId)
         {
-            Process(action, ValidationOptions.None);
+            Process(action, clientId, ValidationOptions.None);
         }
 
-        public void ProcessFromServer(IAction action)
+        public void ProcessServerAction(IAction action)
         {
-            Process(action, ValidationOptions.SenderIsServer);
+            Process(action, ClientId.Server, ValidationOptions.SenderIsServer);
         }
 
-        public void Execute(ICommand command)
+        public void Execute(ICommand command, int[] clientIds, ExecuteOn target)
         {
-            var receiver = _resolver.ResolveReceiver(command);
-            receiver.Execute(command);
+            if (target == ExecuteOn.None)
+            {
+                return;
+            }
+
+            bool executeOnServer = (target & ExecuteOn.Server) != 0;
+            bool executeOnAllClients = (target & ExecuteOn.AllClients) != 0;
+            bool executeOnAnyClient = executeOnAllClients || (target & ExecuteOn.OneClient) != 0;
+            
+            if (executeOnServer)
+            {
+                ExecuteOnServer(command);
+            }
+
+            if (executeOnAnyClient)
+            {
+                _commands.Send(command, clientIds, executeOnAllClients);
+            }
         }
 
         #endregion Public
 
         #region Private
 
-        private void Process(IAction action, ValidationOptions options)
+        private void Process(IAction action, int clientId, ValidationOptions options)
         {
-            var result = Validate(action, options);
+            var result = Validate(action, clientId, options);
             if (!result.Success)
             {
-                // TODO: do we need to log this?
-                Debug.LogError($"Validation of {action} failed. code={result.Code}");
+                HeistLogger.Info(LogTag, $"Validation of {action} failed. code={result.Code}");
                 return;
             }
             
             var handler = _resolver.ResolveHandler(action);
-            handler.Process(action);
+            handler.Process(action, clientId);
+        }
+
+        private void ExecuteOnServer(ICommand command)
+        {
+            var receiver = _resolver.ResolveReceiver(command);
+            
+            OnCommandExecution.SafeInvoke(command);
+            receiver.Execute(command);
+            OnCommandExecuted.SafeInvoke(command);
         }
 
         #endregion Private
 
         #region Bindings
 
-        private void OnReceived(IProcessable processable)
+        private void OnActionReceived(IAction action, int clientId)
         {
-            if (processable is not IAction action)
-            {
-                return;
-            }
-
-            ProcessFromClient(action);
+            ProcessClientAction(action, clientId);
         }
 
         #endregion Bindings

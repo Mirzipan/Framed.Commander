@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Mirzipan.Heist.Commands
+namespace Mirzipan.Heist
 {
     public struct ValidationResult : IEqualityComparer<ValidationResult>
     {
