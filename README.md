@@ -207,27 +207,18 @@ public interface IOutgoingCommands : IDisposable
 ## Future Plans
 The following are likely further extensions of the package, in no particular order or priority
 
-### Reactive Systems / Event Bus
-Some form of registry for things that may want to respond to actions being processed and/or commands being executed.
-This will mostly likely end up being generic, so that systems can simple declare what type of action/command they are interested in.
-This role could also be served by an event bus, where the command would dispatch the relevant event(s) and subscribers could then execute whatever they see fit.
-
-### Metadata Crawler
-Separation of the type-crawling part (`IMetadataIndexer` and `MetadataContainer`) into a separate package, ideally reusable for indexing other types.
-Not a priority until a need for indexers in other packages would arise.
-
 ### Debug View
 A Debugger window where you can see all of the registered actions/commands. 
 This would include some extra information, such as how many times an action was validated and processed, and a command was executed.
 `Reflex` debugger already shows the count of resolutions for each action/command, but that tells use nothing about how the processing/execution went.
 
-### Multiplayer Support
-This is likely the lowest priority, because no project for which this package is primary intended, needs multiplayer at this stage.
-It already has some preparation for it, such as separate processors.
-The current architecture is already reasonably friendly for a client-server extension, though it would only work for single-player, as there is no way of identifying multiple clients or messaging between them.
-It also lacks any form of "local simulation, until server tells us otherwise" when processing actions.
-
 ### Processor Ticking
 Currently `IClientProcessor` needs to be ticked in a rather manual way.
 Maybe an `ITickable` interface could be used by all things tickable, a central manager would do the ticking.
 Something like this would likely end up in [Mirzipan.Scheduler](https://github.com/Mirzipan/Mirzipan.Scheduler), thus adding another dependency.
+
+## Inspiration
+There were many inspirations for this, most notably:
+* experience from mobile games with server-side logic, and trying to reduce pointless code duplication 
+* various comments by the dev of [Glorious Companions](https://store.steampowered.com/app/1001040/Glorious_Companions/)
+* http://codensuch.com/trap-labs-series/part3
