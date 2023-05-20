@@ -8,33 +8,33 @@ namespace Mirzipan.Heist
     {
         #region Inner Types
 
-        private struct Processable
+        private struct Entry
         {
-            public int[] ClientIds;
             public IAction Action;
             public ICommand Command;
+            public int[] ClientIds;
             public ExecuteOn Target;
 
-            public Processable(IAction action)
+            public static Entry FromAction(IAction action)
             {
-                ClientIds = null;
-                Action = action;
-                Command = null;
-                Target = ExecuteOn.None;
+                var result = default(Entry);
+                result.Action = action;
+                return result;
             }
 
-            public Processable(ICommand command, int[] clientIds, ExecuteOn target)
+            public static Entry FromCommand(ICommand command, int[] clientIds, ExecuteOn target)
             {
-                ClientIds = clientIds;
-                Action = null;
-                Command = command;
-                Target = target;
+                var result = default(Entry);
+                result.Command = command;
+                result.ClientIds = clientIds;
+                result.Target = target;
+                return result;
             }
         }
 
         #endregion Inner Types
 
-        private readonly List<Processable> _processingQueue = new();
+        private readonly List<Entry> _processingQueue = new();
 
         [Inject]
         internal IServerProcessor Processor;
@@ -80,11 +80,11 @@ namespace Mirzipan.Heist
 
         protected abstract void Process(T action, int clientId);
 
-        protected void Enqueue(IAction action) => _processingQueue.Add(new Processable(action));
+        protected void Enqueue(IAction action) => _processingQueue.Add(Entry.FromAction(action));
 
         protected void Enqueue(ICommand command, int[] clientIds, ExecuteOn target)
         {
-            _processingQueue.Add(new Processable(command, clientIds, target));
+            _processingQueue.Add(Entry.FromCommand(command, clientIds, target));
         }
 
         protected void Enqueue(ICommand command, int clientId, ExecuteOn target)
