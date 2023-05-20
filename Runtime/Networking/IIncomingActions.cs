@@ -1,6 +1,8 @@
-﻿namespace Mirzipan.Heist.Networking
+﻿using System;
+
+namespace Mirzipan.Heist.Networking
 {
-    public interface IIncomingActions
+    public interface IIncomingActions : IDisposable
     {
         event ActionReceived OnActionReceived;
     }
