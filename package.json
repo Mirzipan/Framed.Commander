@@ -1,7 +1,7 @@
 {
   "name": "net.mirzipan.heist",
   "displayName": "Mirzipan Heist",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "unity": "2021.3",
   "description": "Simple multi-client command pattern implementation for Unity.",
   "author": {

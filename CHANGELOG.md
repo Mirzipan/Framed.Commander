@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.1.0] - 2023-05-21
+
+### Changed
+- ContainerDescriptor extensions are now chainable
+
 ## [5.0.0] - 2023-05-21
 
 ### Added
