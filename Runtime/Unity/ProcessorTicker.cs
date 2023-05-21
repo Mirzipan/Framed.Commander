@@ -6,21 +6,23 @@ namespace Mirzipan.Heist.Unity
 {
     public class ProcessorTicker : MonoBehaviour
     {
+        private const string LogTag = "Ticker";
+        
         [Inject]
-        private IClientProcessor _client;
+        private ClientProcessor _client;
         [Inject]
-        private IServerProcessor _server;
+        private ServerProcessor _server;
 
         private void Start()
         {
             if (_client != null)
             {
-                Debug.Log("[Ticker] client exists.");
+                HeistLogger.Info(LogTag, $"{nameof(ClientProcessor)} exists.");
             }
             
             if (_server != null)
             {
-                Debug.Log("[Ticker] server exists.");
+                HeistLogger.Info(LogTag, $"{nameof(ServerProcessor)} exists.");
             }
         }
 

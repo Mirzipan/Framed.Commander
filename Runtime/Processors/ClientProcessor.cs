@@ -37,7 +37,7 @@ namespace Mirzipan.Heist.Processors
                 ICommandReceiver handler = _resolver.ResolveReceiver(command);
                 
                 OnCommandExecution.SafeInvoke(command);
-                handler.Execute(command);
+                handler.Execute(command, ExecutionOptions.None);
                 OnCommandExecuted.SafeInvoke(command);
             }
         }

@@ -47,7 +47,7 @@ namespace Mirzipan.Heist.Reflex
         /// <param name="this"></param>
         public static void AddClientProcessor(this ContainerDescriptor @this)
         {
-            @this.AddSingleton(typeof(ClientProcessor), typeof(IClientProcessor));
+            @this.AddSingleton(typeof(ClientProcessor), typeof(ClientProcessor), typeof(IClientProcessor));
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Mirzipan.Heist.Reflex
         /// <param name="this"></param>
         public static void AddServerProcessor(this ContainerDescriptor @this)
         {
-            @this.AddSingleton(typeof(ServerProcessor), typeof(IServerProcessor));
+            @this.AddSingleton(typeof(ServerProcessor), typeof(ServerProcessor), typeof(IServerProcessor));
         }
 
         private static void AddIndexers(ContainerDescriptor descriptor, IMetadataContainer container)

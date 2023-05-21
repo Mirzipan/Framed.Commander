@@ -2,6 +2,6 @@
 {
     public interface ICommandReceiver
     {
-        void Execute(ICommand command);
+        void Execute(ICommand command, ExecutionOptions options);
     }
 }

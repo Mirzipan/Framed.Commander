@@ -2,11 +2,11 @@
 {
     public abstract class ACommandReceiver<T> : ICommandReceiver where T : ICommand
     {
-        public void Execute(ICommand command)
+        public void Execute(ICommand command, ExecutionOptions options)
         {
-            Execute((T)command);
+            Execute((T)command, options);
         }
 
-        protected abstract void Execute(T command);
+        protected abstract void Execute(T command, ExecutionOptions options);
     }
 }

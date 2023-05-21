@@ -2,6 +2,5 @@
 {
     public interface IClientProcessor : IProcessor
     {
-        void Tick();
     }
 }

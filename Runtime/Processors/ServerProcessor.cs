@@ -116,7 +116,7 @@ namespace Mirzipan.Heist.Processors
             var receiver = _resolver.ResolveReceiver(command);
             
             OnCommandExecution.SafeInvoke(command);
-            receiver.Execute(command);
+            receiver.Execute(command, ExecutionOptions.None);
             OnCommandExecuted.SafeInvoke(command);
         }
 
