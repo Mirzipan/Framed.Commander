@@ -13,9 +13,10 @@ The most notable dependency is [Reflex](https://github.com/gustavopsantos/Reflex
 A short guide to get you up-and-running.
 
 1) Add [Reflex](https://github.com/gustavopsantos/Reflex) to your project and create `ProjectScope` prefab according to their instructions.
-2) Add `SinglePlayerHeistInstaller` script to your `ProjectScope` prefab.
-3) Create your custom actions and commands (see examples in [Sandbox.Heist](https://github.com/Mirzipan/Sandbox.Heist) for a quick reference).
-4) Have a separate copy of your date for client and for server.
+2) Add `SinglePlayerHeistInstaller` script to your `ProjectScope` prefab or onto your `SceneScope` in the scene.
+3) Add `ProcessorTicker` to a GameObject in your scene. 
+4) Create your custom actions and commands (see examples in [Sandbox.Heist](https://github.com/Mirzipan/Sandbox.Heist) for a quick reference).
+5) Have a separate copy of your data for client and for server.
 
 In case you want more than the basics, refer to the documentation below to learn how to extend Heist.
 

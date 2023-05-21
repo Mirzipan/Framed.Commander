@@ -1,5 +1,18 @@
 # Changelog
 
+## [5.0.0] - 2023-05-21
+
+### Added
+- ExecutionOptions for ICommandReceiver (currently empty, but aimed at avoiding API changes in the future)
+
+### Changed
+- ProcessorTicker now expects ClientProcessor and ServerProcessor instead of their interfaces
+- ClientProcessor is now also registered in container as its concrete type
+- ServerProcessor is now also registered in container as its concrete type
+
+### Removed
+- Tick from IClientProcessor, because it should not be mandatory
+
 ## [4.0.0] - 2023-05-20
 
 ### Added
