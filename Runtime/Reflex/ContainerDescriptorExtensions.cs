@@ -12,7 +12,7 @@ namespace Mirzipan.Heist.Reflex
         /// Adds IMetadataContainer, IResolver, IActionIndexer, ICommandIndexer, and all actions and commands.
         /// </summary>
         /// <param name="this"></param>
-        public static void AddMetadataIndexers(this ContainerDescriptor @this)
+        public static ContainerDescriptor AddMetadataIndexers(this ContainerDescriptor @this)
         {
             var metaContainer = new MetadataContainer();
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
@@ -22,6 +22,7 @@ namespace Mirzipan.Heist.Reflex
             @this.AddSingleton(typeof(Resolver), typeof(IResolver));
 
             AddIndexers(@this, metaContainer);
+            return @this;
         }
 
         /// <summary>
@@ -29,7 +30,7 @@ namespace Mirzipan.Heist.Reflex
         /// Do not call this if you want another type of network.
         /// </summary>
         /// <param name="this"></param>
-        public static void AddLoopbackQueue(this ContainerDescriptor @this)
+        public static ContainerDescriptor AddLoopbackQueue(this ContainerDescriptor @this)
         {
             var queue = new LoopbackQueue();
             @this.AddInstance(
@@ -38,6 +39,7 @@ namespace Mirzipan.Heist.Reflex
                 typeof(IOutgoingActions),
                 typeof(IIncomingCommands),
                 typeof(IOutgoingCommands));
+            return @this;
         }
 
         /// <summary>
@@ -45,9 +47,10 @@ namespace Mirzipan.Heist.Reflex
         /// Do not call this if you want your custom client processor.
         /// </summary>
         /// <param name="this"></param>
-        public static void AddClientProcessor(this ContainerDescriptor @this)
+        public static ContainerDescriptor AddClientProcessor(this ContainerDescriptor @this)
         {
             @this.AddSingleton(typeof(ClientProcessor), typeof(ClientProcessor), typeof(IClientProcessor));
+            return @this;
         }
 
         /// <summary>
@@ -55,9 +58,10 @@ namespace Mirzipan.Heist.Reflex
         /// Do not call this if you want your custom server processor.
         /// </summary>
         /// <param name="this"></param>
-        public static void AddServerProcessor(this ContainerDescriptor @this)
+        public static ContainerDescriptor AddServerProcessor(this ContainerDescriptor @this)
         {
             @this.AddSingleton(typeof(ServerProcessor), typeof(ServerProcessor), typeof(IServerProcessor));
+            return @this;
         }
 
         private static void AddIndexers(ContainerDescriptor descriptor, IMetadataContainer container)
