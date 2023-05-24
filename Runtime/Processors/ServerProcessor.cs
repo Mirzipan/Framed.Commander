@@ -10,6 +10,8 @@ namespace Mirzipan.Heist.Processors
         
         public event Action<ICommand> OnCommandExecution;
         public event Action<ICommand> OnCommandExecuted;
+        public event Action<IAction> OnActionProcessing;
+        public event Action<IAction> OnActionProcessed;
         
         private IOutgoingCommands _commands;
         private IIncomingActions _actions;
@@ -30,6 +32,8 @@ namespace Mirzipan.Heist.Processors
         {
             OnCommandExecution = null;
             OnCommandExecuted = null;
+            OnActionProcessing = null;
+            OnActionProcessed = null;
 
             _actions.OnActionReceived -= OnActionReceived;
             _actions = null;
@@ -106,9 +110,12 @@ namespace Mirzipan.Heist.Processors
                 HeistLogger.Info(LogTag, $"Validation of {action} failed. code={result.Code}");
                 return;
             }
-            
+
             var handler = _resolver.ResolveHandler(action);
+            
+            OnActionProcessing.SafeInvoke(action);
             handler.Process(action, clientId);
+            OnActionProcessed.SafeInvoke(action);
         }
 
         private void ExecuteOnServer(ICommand command)
