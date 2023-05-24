@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.2.0] - 2023-05-24
+
+### Added
+- OnActionProcessing and OnActionProcessed events in IServerProcessor
+
 ## [5.1.0] - 2023-05-21
 
 ### Changed

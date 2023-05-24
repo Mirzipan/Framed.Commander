@@ -150,6 +150,8 @@ public interface IServerProcessor
 {
     event Action<ICommand> OnCommandExecution;
     event Action<ICommand> OnCommandExecuted;
+    event Action<IAction> OnActionProcessing;
+    event Action<IAction> OnActionProcessed;
     ValidationResult Validate(IAction action);
     ValidationResult Validate(IAction action, int clientId, ValidationOptions options);
     void Process(IAction action);
@@ -160,6 +162,8 @@ public interface IServerProcessor
 ```
 * `OnCommandExecution` - same as `IClientProcessor`.
 * `OnCommandExecuted` - same as `IClientProcessor`.
+* `OnActionProcessing` - invoked immediately before processing of an action.
+* `OnActionProcessed` - invoked immediately after an action was processed.
 * `Validate` - same as `IClientProcessor`, includes an overload which have have further options specified.
 * `Process` - same as calling `ProcessServerAction`.
 * `ProcessClientAction` - validates and processes an action sent by client.
