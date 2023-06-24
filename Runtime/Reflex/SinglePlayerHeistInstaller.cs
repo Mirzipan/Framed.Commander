@@ -13,5 +13,9 @@ namespace Mirzipan.Heist.Reflex
             descriptor.AddClientProcessor();
             descriptor.AddServerProcessor();
         }
+
+        public void OnContainerBuilt(Container container)
+        {
+        }
     }
 }

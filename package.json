@@ -19,7 +19,7 @@
      "server"
   ],
   "dependencies": {
-    "com.gustavopsantos.reflex" : "4.1.3",
+    "com.gustavopsantos.reflex" : "4.3.2",
     "net.mirzipan.bibliotheca" : "1.3.2",
     "net.mirzipan.extensions" : "1.4.0"
   }
